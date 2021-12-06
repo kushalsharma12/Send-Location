@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginTop="32dp"
+    android:orientation="vertical"
+    tools:context=".AskPhoneNo">
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="32dp">
+
+        <EditText
+            android:id="@+id/emergencyNo1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="40dp"
+            android:hint="Emergency No 1" />
+
+        <ImageView
+            android:id="@+id/selectContact1"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_gravity="right|center"
+            android:background="@drawable/ic_baseline_contacts_24" />
+
+
+    </androidx.cardview.widget.CardView>
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="32dp"
+        android:layout_marginTop="16dp">
+
+        <EditText
+            android:id="@+id/emergencyNo2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="40dp"
+            android:hint="Emergency No 2" />
+
+        <ImageView
+            android:id="@+id/selectContact2"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_gravity="right|center"
+            android:background="@drawable/ic_baseline_contacts_24" />
+
+
+    </androidx.cardview.widget.CardView>
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="32dp"
+        android:layout_marginTop="16dp">
+
+        <EditText
+            android:id="@+id/emergencyNo3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="40dp"
+            android:hint="Emergency No 3" />
+
+        <ImageView
+            android:id="@+id/selectContact3"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_gravity="right|center"
+            android:background="@drawable/ic_baseline_contacts_24" />
+
+
+    </androidx.cardview.widget.CardView>
+
+
+    <Button
+        android:id="@+id/btn_save"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right"
+        android:layout_marginHorizontal="64dp"
+        android:layout_marginTop="32dp"
+        android:text="save" />
+
+</LinearLayout>

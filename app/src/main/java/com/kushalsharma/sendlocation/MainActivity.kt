@@ -4,38 +4,37 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.hardware.SensorManager
 import android.location.Location
 import android.location.LocationManager
 import android.os.Bundle
+import android.os.Looper
 import android.provider.Settings
 import android.telephony.SmsManager
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.*
+import com.kushalsharma.sendlocation.databinding.ActivityMainBinding
 import com.squareup.seismic.ShakeDetector
 import com.vmadalin.easypermissions.EasyPermissions
 import com.vmadalin.easypermissions.dialogs.SettingsDialog
 import com.vmadalin.easypermissions.models.PermissionRequest
 import kotlinx.android.synthetic.main.activity_main.*
-import android.os.Looper
-import androidx.core.location.LocationManagerCompat.requestLocationUpdates
-
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationResult
-
-import com.google.android.gms.location.LocationCallback
 
 
 class MainActivity : AppCompatActivity(), ShakeDetector.Listener,
     EasyPermissions.PermissionCallbacks {
 
-    var mFusedLocationClient: FusedLocationProviderClient? = null
-    var sd: ShakeDetector? = null
+    private lateinit var binding: ActivityMainBinding
 
+    // for location
+    var mFusedLocationClient: FusedLocationProviderClient? = null
     private lateinit var mLocationRequest: LocationRequest
+
+    //seismic library
+    var sd: ShakeDetector? = null
 
 
     companion object {
@@ -43,34 +42,59 @@ class MainActivity : AppCompatActivity(), ShakeDetector.Listener,
     }
 
 
+    @SuppressLint("WrongConstant")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
+        //method for shake detection
         startShakeDetector()
 
+        // for location
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
+        //method for requesting permission
         requestPermissions()
 
-        // Sending sms
-        button.setOnClickListener {
-            val number = phNoET.getText().toString()
-            val msg = msgTv.getText().toString()
-            try {
-                val smsManager: SmsManager = SmsManager.getDefault()
-                smsManager.sendTextMessage(number, null, msg, null, null)
-                Toast.makeText(applicationContext, "Message Sent", Toast.LENGTH_LONG).show()
-            } catch (e: Exception) {
-                Log.d("error", "${e.toString()}, \n ${e.message}")
-                Toast.makeText(applicationContext, "Some fields are Empty", Toast.LENGTH_LONG)
-                    .show()
-            }
-        }
 
         // method to get the location
         getLastLocation()
 
+        //intent for askPhoneNo activity
+        binding.btnEditNumber.setOnClickListener {
+            val intent = Intent(this, AskPhoneNo::class.java)
+            startActivity(intent)
+        }
+
+        //this method helps to check if user
+        //had written emergency numbers.
+        //If there are no emergency numbers saved by user
+        // then user will be redirected to AskPhoneNo Activity
+        updateUi()
+
+
+    }
+
+    @SuppressLint("WrongConstant")
+    private fun updateUi() {
+
+        //getSharedPreferencesData() method returns sharedPref of
+        // those emergency numbers saved by the user.
+        val sh = getSharedPreferencesData()
+
+        val s1 = sh!!.getString("number1", null)
+        val s2 = sh.getString("number2", null)
+        val s3 = sh.getString("number3", null)
+
+        if (s1 == null && s2 == null && s3 == null) {
+            val askPhonNoIntent = Intent(this, AskPhoneNo::class.java)
+            startActivity(askPhonNoIntent)
+        } else {
+            //we will save these s1 s2 s3
+            //by shaking the phone a message will be sent to those numbers
+            Log.d("nnnn", "just a message")
+        }
 
     }
 
@@ -140,6 +164,7 @@ class MainActivity : AppCompatActivity(), ShakeDetector.Listener,
             Looper.myLooper()
         )
     }
+
     private val mLocationCallback: LocationCallback = object : LocationCallback() {
         override fun onLocationResult(locationResult: LocationResult) {
             val mLastLocation = locationResult.lastLocation
@@ -161,27 +186,45 @@ class MainActivity : AppCompatActivity(), ShakeDetector.Listener,
     }
 
 
+    //When user shake the phone this method will called
     override fun hearShake() {
 
-        val number = phNoET.getText().toString()
+        //taking all the saved emergency number
+        val sh = getSharedPreferencesData()
+        val s1 = sh!!.getString("number1", null)
+        val s2 = sh.getString("number2", null)
+        val s3 = sh.getString("number3", null)
+
+
+//        val number = binding.phNoET.getText().toString()
+
+        //taking the current location of the user
         val gMapUrl = currentLocation.getText().toString()
+
+        // message for sms
         val msg =
             "Hi, I'm in trouble and need your help, please reach out to me. Here's my exact location: $gMapUrl"
 
 
-
+        //below code is for sending the sms to emergency numbers
         try {
             val smsManager: SmsManager = SmsManager.getDefault()
-            smsManager.sendTextMessage(number, null, msg, null, null)
+            smsManager.sendTextMessage(s1, null, msg, null, null)
+            smsManager.sendTextMessage(s2, null, msg, null, null)
+            smsManager.sendTextMessage(s3, null, msg, null, null)
             Toast.makeText(applicationContext, "Message Sent", Toast.LENGTH_LONG).show()
         } catch (e: Exception) {
             Log.d("error", "${e.toString()}, \n ${e.message}")
-            Toast.makeText(applicationContext, "Some fields is Empty", Toast.LENGTH_LONG).show()
+            Toast.makeText(
+                applicationContext,
+                "Your Phone number is not correct!",
+                Toast.LENGTH_LONG
+            ).show()
         }
-
 
 //        Toast.makeText(this, "phone shaked", Toast.LENGTH_SHORT).show()
     }
+
 
     private fun hasPermission() =
         EasyPermissions.hasPermissions(
@@ -233,14 +276,21 @@ class MainActivity : AppCompatActivity(), ShakeDetector.Listener,
         Toast.makeText(this, "Permission Granted", Toast.LENGTH_SHORT).show()
     }
 
+    //start the shakeDetector again
     override fun onResume() {
         super.onResume()
         startShakeDetector()
     }
 
+    // stop the shakeDetector
     override fun onPause() {
         super.onPause()
         sd!!.stop()
     }
 
+    @SuppressLint("WrongConstant")
+    fun getSharedPreferencesData(): SharedPreferences? {
+        val sh = getSharedPreferences("Number", MODE_APPEND)
+        return sh
+    }
 }
